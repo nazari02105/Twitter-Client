@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+D:/project/server/main.c
+stdio.h
+-
+slre.h
+D:/project/server/slre.h
+winsock2.h
+-
+string.h
+-
+windows.h
+-
+mmsystem.h
+-
+
+D:/project/server/slre.h
+
