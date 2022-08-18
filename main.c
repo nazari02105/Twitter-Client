@@ -33,6 +33,15 @@ void changePassword (void);
 void logOut (void);
 void searchForTheSecondTime (void);
 void delay (unsigned int value);
+void deleteTweet (void);
+void retweet (void);
+void retweetAfterSearch (void);
+void tweetSearch (void);
+void addFavorite (void);
+void showFavorite (void);
+void afterShowFavorite (void);
+void deleteFavorite (void);
+void showNotification (void);
 
 
 
@@ -108,7 +117,7 @@ int main (void)
         int shiftControl = 0;
         for (jumpControlAtBottom = 0; jumpControlAtBottom<30; ++jumpControlAtBottom){
             printf("\n");
-        }
+       }
         fputs(rocket, stdout);
         for (shiftControl = 0; shiftControl<30; ++shiftControl) {
             delay(someDelay);
@@ -150,7 +159,7 @@ char *client (char *command)
     }
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
     server.sin_family = AF_INET;
-    server.sin_port = htons(12345);
+    server.sin_port = htons(88);
     //connect to remote server
     if (connect(s, (struct sockaddr *) &server, sizeof(server)) < 0){
         return "Connection failed";
@@ -234,14 +243,25 @@ void signUpMenu (void)
     int num_caps = 1;
     char caps[num_caps][100000];
     slre_match(regex, serverAnswerForSignup, 100000, caps, num_caps, 0);
-    if (strcmp(caps, "Error") == 0){
-        //color
-        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
-        //color
-        printf("This username is already taken.");
-        for (long long int fake = 0; fake <=1000000000; ++fake);
-        system("CLS");
-        mainMenu();
+    if (strcmp(caps[0], "Error") == 0){
+        if (serverAnswerForSignup[28] == 'h') {
+            //color
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            //color
+            printf("This username is already taken.");
+            for (long long int fake = 0; fake <= 1000000000; ++fake);
+            system("CLS");
+            mainMenu();
+        }
+        if (serverAnswerForSignup[28] == 'o'){
+            //color
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            //color
+            printf("Your password should not be more than 16 character.");
+            for (long long int fake = 0; fake <= 1000000000; ++fake);
+            system("CLS");
+            mainMenu();
+        }
     }
     else{
         //color
@@ -285,11 +305,25 @@ void loginMenu (void)
     int num_caps = 2;
     char caps[num_caps][100000];
     slre_match(regex, serverAnswerForLogin, 100000, caps, num_caps, 0);
-    if (strcmp(caps[0], "Error") == 0){
-        //color
-        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
-        //color
-        printf("\nUsername or password is incorrect. Please check them or signup with them.");
+    if (serverAnswerForLogin[9] == 'E'){
+        if (serverAnswerForLogin[27] == 'I') {
+            //color
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            //color
+            printf("\nPassword is incorrect. Please check it.");
+        }
+        if (serverAnswerForLogin[27] == 'T' && serverAnswerForLogin[29] == 'i'){
+            //color
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            //color
+            printf("\nThe username is not exists please singup with it.");
+        }
+        if (serverAnswerForLogin[27] == 'T' && serverAnswerForLogin[29] == 'e'){
+            //color
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            //color
+            printf("\nThis username was logged in before.");
+        }
         for (long long int fake = 0; fake <=1000000000; ++fake);
         system("CLS");
         mainMenu();
@@ -312,7 +346,7 @@ void intheapplication (void)
     saved_attributes = consoleInfo.wAttributes;
     SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
     //color
-    printf("1.TimeLine\n2.Search\n3.Tweet Profile\n4.Personal area\n5.Log out\n");
+    printf("1.TimeLine\n2.Search\n3.Tweet search\n4.Tweet Profile\n5.Personal area\n6.Log out\n");
     SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
     printf("\n\nPlease enter the number of service which you want:\n");
     if (sureForAfterSearch == 1){
@@ -332,13 +366,17 @@ void intheapplication (void)
     }
     if (intheapplicationVariable == 3){
         system("CLS");
-        tweetProfrle();
+        tweetSearch();
     }
     if (intheapplicationVariable == 4){
         system("CLS");
-        personalArea();
+        tweetProfrle();
     }
     if (intheapplicationVariable == 5){
+        system("CLS");
+        personalArea();
+    }
+    if (intheapplicationVariable == 6){
         system("CLS");
         logOut();
     }
@@ -359,7 +397,7 @@ void timeLine (void)
     saved_attributes = consoleInfo.wAttributes;
     SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
     //color
-    printf("1.Send tweet\n2.Refresh\n3.back\n");
+    printf("1.Send tweet\n2.Refresh\n3.show favorite\n4.back\n");
     SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
     printf("\n\nPlease choose the number which you want: \n");
     SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_RED|FOREGROUND_INTENSITY);
@@ -374,6 +412,10 @@ void timeLine (void)
         refresh();
     }
     if (timeLineVariable == 3){
+        system("CLS");
+        showFavorite();
+    }
+    if (timeLineVariable == 4){
         system("CLS");
         intheapplication();
     }
@@ -430,11 +472,11 @@ void refresh (void)
     strcat(finalOutPutOfRefresh, authToken);
     strcat(finalOutPutOfRefresh, "\n");
     char *serverAnswerForRefresh = client(finalOutPutOfRefresh);
-    char serverAnswerForRefreshStringMode[600];
+    char serverAnswerForRefreshStringMode[10000];
     strcpy(serverAnswerForRefreshStringMode, serverAnswerForRefresh);
     //instead of regex i used string.h functions to show refresh answer on the terminal
     char *tokenPtr;
-    char xxxyyy[100][30];
+    char xxxyyy[1000][300];
     tokenPtr = strtok(serverAnswerForRefreshStringMode,"\"");
     int i = 0;
     while (tokenPtr != NULL){
@@ -507,7 +549,7 @@ void afterRefresh (void)
     SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
     //color
     printf("\n\n\n");
-    printf("1.Like or comment a tweet!\n2.Show comment(s)\n3.Back");
+    printf("1.Like or comment a tweet!\n2.Show comment(s)\n3.retweet\n4.Back");
     int likeOrCommentVariable;
     SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
     printf("\n\nPlease choose one: \n");
@@ -524,6 +566,11 @@ void afterRefresh (void)
         showCommentsAfterRefresh();
     }
     if (likeOrCommentVariable == 3){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        printf("\n-------------------------------------------------\n");
+        retweet();
+    }
+    if (likeOrCommentVariable == 4){
         system("CLS");
         timeLine();
     }
@@ -562,9 +609,19 @@ void likeOrComment (void)
         strcat(finalRequestFromLikeSection, ", ");
         strcat(finalRequestFromLikeSection, increasingLike);
         strcat(finalRequestFromLikeSection, "\n");
-        client(finalRequestFromLikeSection);
-        SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-        printf("\nLiked:)!\n");
+        char* server_response_for_like = client(finalRequestFromLikeSection);
+        if (server_response_for_like[9] == 'S') {
+            SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+            printf("\nLiked:)!\n");
+        }
+        if (server_response_for_like[9] == 'E' && server_response_for_like[27] == 'T'){
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            printf("\nYour tweet id is out of range");
+        }
+        if (server_response_for_like[9] == 'E' && server_response_for_like[27] == 'L'){
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            printf("\nYou liked this tweet before :).");
+        }
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
         printf("-------------------------------------------------");
         afterRefresh();
@@ -589,9 +646,15 @@ void likeOrComment (void)
         strcat(commentRequestToServer, ", ");
         strcat(commentRequestToServer, commentText);
         strcat(commentRequestToServer, "\n");
-        client(commentRequestToServer);
-        SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-        printf("\n\nComment saved!\n");
+        char* server_response_for_comment = client(commentRequestToServer);
+        if (server_response_for_comment[9] == 'S') {
+            SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+            printf("\n\nComment saved!\n");
+        }
+        if (server_response_for_comment[9] == 'E'){
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            printf("\n\nYour tweet id is out of range.\n");
+        }
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
         printf("-------------------------------------------------\n");
         afterRefresh();
@@ -603,6 +666,45 @@ void likeOrComment (void)
     }
     else{
         likeOrComment();
+    }
+}
+//-------------------------------------------------------------------------
+void retweet (void)
+{
+    //color
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_GREEN);
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+    //color
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
+    printf("\n\nEnter tweet id which you want to retweet:\n");
+    char tweet_id_to_retweet[50];
+    SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+    scanf("%s", tweet_id_to_retweet);
+    char retweet_request[200] = "retweet ";
+    strcat(retweet_request, authToken);
+    strcat(retweet_request, ", ");
+    strcat(retweet_request, tweet_id_to_retweet);
+    strcat(retweet_request, "\n");
+    char *server_response = client(retweet_request);
+    if (server_response[9] == 'S'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+        printf("\n\nRetweeted successfuly.\n");
+        afterRefresh();
+    }
+    if (server_response[9] == 'E' && server_response[27] == 'O'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        printf("\n\nYour tweet id is out of range.\n");
+        afterRefresh();
+    }
+    if (server_response[9] == 'E' && server_response[27] == 'P'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        printf("\n\nYou retweeted this tweet before.\n");
+        afterRefresh();
     }
 }
 //-------------------------------------------------------------------------
@@ -675,9 +777,12 @@ void search (void)
     strcat(finalSearchRequest, "\n");
     strcpy(onlyForTheSecondTime, finalSearchRequest);
     char *ServerAnswerForSearch = client(finalSearchRequest);
+    //
+    ServerAnswerForSearch[strlen(ServerAnswerForSearch)] = '\0';
+    //
     strcpy(serchVariableForChangeStatus, searchVariable);
     SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-    if (strlen(ServerAnswerForSearch) == 57){
+    if (strlen(ServerAnswerForSearch) == 56){
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
         printf("\n\n\nSorry the username which you entered seems not to be exist.");
         for (long long int fake = 0; fake <=1000000000; ++fake);
@@ -685,97 +790,121 @@ void search (void)
         intheapplication();
     }
     else{
-        char message[2000];
-        strcpy(message, ServerAnswerForSearch);
-        char *tokenPtr;
-        char xxxyyy[300][30];
-        tokenPtr = strtok(message, "\"");
-        int i = 0;
-        while (tokenPtr != NULL){
-            strcpy(xxxyyy[i], tokenPtr);
-            tokenPtr = strtok(NULL, "\"");
-            ++i;
+        //
+        char instead[5000];
+        strcpy(instead, ServerAnswerForSearch);
+        //
+        if (ServerAnswerForSearch[0] == '['){
+            system("CLS");
+            SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+            strcpy(instead, instead+1);
+            instead[strlen(instead)-1] = '\0';
+            for (int r = 0; r<strlen(instead); ++r){
+                if (instead[r] != ','){
+                    printf("%c", instead[r]);
+                }
+                if (instead[r] == ','){
+                    printf("\n");
+                }
+            }
+            SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
+            printf("\n\nDo you mean these users? If yes please write their whole name.\n\n");
+            search();
         }
-        for (int k = 0; k<i; ++k){
-            if (strcmp(xxxyyy[k], "username") == 0){
-                printf("Username: %s\n", xxxyyy[k+2]);
+        else if (ServerAnswerForSearch[0] == '{') {
+            char message[2000];
+            strcpy(message, ServerAnswerForSearch);
+            char *tokenPtr;
+            char xxxyyy[300][30];
+            tokenPtr = strtok(message, "\"");
+            int i = 0;
+            while (tokenPtr != NULL) {
+                strcpy(xxxyyy[i], tokenPtr);
+                tokenPtr = strtok(NULL, "\"");
+                ++i;
             }
-            if (strcmp(xxxyyy[k], "bio")==0){
-                printf("Bio: %s\n", xxxyyy[k+2]);
-            }
-            if (strcmp(xxxyyy[k], "numberOfFollowers")==0){
-                printf("Followers: ");
-                strcpy(number2, xxxyyy[k+1]);
-                for (int z1 = 1; z1<strlen(number2)-1; ++z1){
-                    printf("%c", number2[z1]);
+            for (int k = 0; k < i; ++k) {
+                if (strcmp(xxxyyy[k], "username") == 0) {
+                    printf("Username: %s\n", xxxyyy[k + 2]);
                 }
-                printf("\t\t");
-            }
-            if (strcmp(xxxyyy[k], "numberOfFollowings")==0){
-                printf("Followings: ");
-                strcpy(number2, xxxyyy[k+1]);
-                for (int z2 = 1; z2<strlen(number2)-1; ++z2){
-                    printf("%c", number2[z2]);
+                if (strcmp(xxxyyy[k], "bio") == 0) {
+                    printf("Bio: %s\n", xxxyyy[k + 2]);
                 }
-                printf("\n");
-            }
-            if (strcmp(xxxyyy[k], "followStatus") == 0){
-                printf("%s\n", xxxyyy[k+2]);
-                strcpy(followingStatusForChangingit, xxxyyy[k+2]);
-            }
-            if (strcmp(xxxyyy[k], "allTweets")==0){
-                int fromTheMiddle = k+1;
-                while(fromTheMiddle <= i){
-                    if (strcmp(xxxyyy[fromTheMiddle], "id") == 0){
-                        printf("\n\n\nId: ");
-                        strcpy(number2, xxxyyy[fromTheMiddle+1]);
-                        strcpy(array_for_comments_2[comment_variable_2], xxxyyy[fromTheMiddle+1]);
-                        comment_variable_2 +=  1;
-                        for (int z2 = 1; z2<strlen(number2)-1; ++z2){
-                            printf("%c", number2[z2]);
+                if (strcmp(xxxyyy[k], "numberOfFollowers") == 0) {
+                    printf("Followers: ");
+                    strcpy(number2, xxxyyy[k + 1]);
+                    for (int z1 = 1; z1 < strlen(number2) - 1; ++z1) {
+                        printf("%c", number2[z1]);
+                    }
+                    printf("\t\t");
+                }
+                if (strcmp(xxxyyy[k], "numberOfFollowings") == 0) {
+                    printf("Followings: ");
+                    strcpy(number2, xxxyyy[k + 1]);
+                    for (int z2 = 1; z2 < strlen(number2) - 1; ++z2) {
+                        printf("%c", number2[z2]);
+                    }
+                    printf("\n");
+                }
+                if (strcmp(xxxyyy[k], "followStatus") == 0) {
+                    printf("%s\n", xxxyyy[k + 2]);
+                    strcpy(followingStatusForChangingit, xxxyyy[k + 2]);
+                }
+                if (strcmp(xxxyyy[k], "allTweets") == 0) {
+                    int fromTheMiddle = k + 1;
+                    while (fromTheMiddle <= i) {
+                        if (strcmp(xxxyyy[fromTheMiddle], "id") == 0) {
+                            printf("\n\n\nId: ");
+                            strcpy(number2, xxxyyy[fromTheMiddle + 1]);
+                            strcpy(array_for_comments_2[comment_variable_2], xxxyyy[fromTheMiddle + 1]);
+                            comment_variable_2 += 1;
+                            for (int z2 = 1; z2 < strlen(number2) - 1; ++z2) {
+                                printf("%c", number2[z2]);
+                            }
+                            printf("\t");
                         }
-                        printf("\t");
-                    }
-                    if (strcmp(xxxyyy[fromTheMiddle], "author")==0){
-                        printf("Author: %s \n", xxxyyy[fromTheMiddle+2]);
-                    }
-                    if (strcasecmp(xxxyyy[fromTheMiddle], "content") == 0){
-                        printf("%s", xxxyyy[fromTheMiddle+2]);
-                    }
-                    if (strcmp(xxxyyy[fromTheMiddle], "comments") == 0){
-                        int number2 = 0;
-                        for (int k2 = fromTheMiddle+1; k2<i; ++k2){
-                            if (strcmp(xxxyyy[k2], "likes") == 0){
+                        if (strcmp(xxxyyy[fromTheMiddle], "author") == 0) {
+                            printf("Author: %s \n", xxxyyy[fromTheMiddle + 2]);
+                        }
+                        if (strcasecmp(xxxyyy[fromTheMiddle], "content") == 0) {
+                            printf("%s", xxxyyy[fromTheMiddle + 2]);
+                        }
+                        if (strcmp(xxxyyy[fromTheMiddle], "comments") == 0) {
+                            int number2 = 0;
+                            for (int k2 = fromTheMiddle + 1; k2 < i; ++k2) {
+                                if (strcmp(xxxyyy[k2], "likes") == 0) {
+                                    break;
+                                }
+                                if (strcmp(xxxyyy[k2], ":") == 0) {
+                                    number2 += 1;
+                                    strcpy(array_for_comments_2[comment_variable_2], xxxyyy[k2 + 1]);
+                                    comment_variable_2 += 1;
+                                }
+                            }
+                            strcpy(array_for_comments_2[comment_variable_2], "***");
+                            comment_variable_2 += 1;
+                            printf("\ncomment(s): %d\t", number2);
+                        }
+                        if (strcmp(xxxyyy[fromTheMiddle], "likes") == 0) {
+                            printf("likes: ");
+                            char likeNumber[100];
+                            strcpy(likeNumber, xxxyyy[fromTheMiddle + 1]);
+                            if (fromTheMiddle + 1 == i) {
+                                for (int k3 = 1; k3 < strlen(likeNumber) - 4; ++k3) {
+                                    printf("%c", likeNumber[k3]);
+                                }
+                                printf("\n");
                                 break;
-                            }
-                            if (strcmp(xxxyyy[k2], ":")== 0){
-                                number2 += 1;
-                                strcpy(array_for_comments_2[comment_variable_2], xxxyyy[k2+1]);
-                                comment_variable_2 += 1;
-                            }
-                        }
-                        strcpy(array_for_comments_2[comment_variable_2], "***");
-                        comment_variable_2 += 1;
-                        printf("\ncomment(s): %d\t", number2);
-                    }
-                    if (strcmp(xxxyyy[fromTheMiddle], "likes") == 0){
-                        printf("likes: ");
-                        char likeNumber[100];
-                        strcpy(likeNumber, xxxyyy[fromTheMiddle+1]);
-                        if (fromTheMiddle+1 == i){
-                            for (int k3 = 1; k3<strlen(likeNumber)-4; ++k3){
-                                printf("%c\n\n", likeNumber[k3]);
-                            }
-                            break;
-                        }
-                        else if (fromTheMiddle+1 <i){
-                            for (int k4 = 1; k4<strlen(likeNumber)-3; ++k4){
-                                printf("%c\n\n", likeNumber[k4]);
+                            } else if (fromTheMiddle + 1 < i) {
+                                for (int k4 = 1; k4 < strlen(likeNumber) - 3; ++k4) {
+                                    printf("%c", likeNumber[k4]);
+                                }
+                                printf("\n");
                             }
                         }
-                    }
 
-                    fromTheMiddle += 1;
+                        fromTheMiddle += 1;
+                    }
                 }
             }
         }
@@ -912,7 +1041,7 @@ void afterSearch (void)
     SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
     //color
     printf("\n\n\n");
-    printf("1.Change following status\n2.Like or comment\n3.Show comment(s)\n4.Back\n");
+    printf("1.Change following status\n2.Like or comment\n3.Show comment(s)\n4.Retweet\n5.Back\n");
     SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
     printf("\n\nPlease enter your choice: \n");
     int searchVariableForLastPart;
@@ -974,11 +1103,59 @@ void afterSearch (void)
         showCommentsAfterSearch();
     }
     if (searchVariableForLastPart == 4){
+        retweetAfterSearch();
+    }
+    if (searchVariableForLastPart == 5){
         system("CLS");
         sureForAfterSearch = 1;
         intheapplication();
     }
     else{
+        system("CLS");
+        searchForTheSecondTime();
+    }
+}
+//-------------------------------------------------------------------------
+void retweetAfterSearch (void)
+{
+    //color
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_GREEN);
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+    //color
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
+    printf("\n\nEnter tweet id which you want to retweet:\n");
+    char tweet_id_to_retweet[50];
+    SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+    scanf("%s", tweet_id_to_retweet);
+    char retweet_request[200] = "retweet ";
+    strcat(retweet_request, authToken);
+    strcat(retweet_request, ", ");
+    strcat(retweet_request, tweet_id_to_retweet);
+    strcat(retweet_request, "\n");
+    char *server_response = client(retweet_request);
+    if (server_response[9] == 'S'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+        printf("\n\nRetweeted successfuly.\n");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
+        system("CLS");
+        searchForTheSecondTime();
+    }
+    if (server_response[9] == 'E' && server_response[27] == 'O'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        printf("\n\nYour tweet id is out of range.\n");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
+        system("CLS");
+        searchForTheSecondTime();
+    }
+    if (server_response[9] == 'E' && server_response[27] == 'P'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        printf("\n\nYou retweeted this tweet before.\n");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
         system("CLS");
         searchForTheSecondTime();
     }
@@ -1056,9 +1233,19 @@ void likeOrCommentAfterSearch (void)
         strcat(finalRequestFromLikeSection, ", ");
         strcat(finalRequestFromLikeSection, increasingLike);
         strcat(finalRequestFromLikeSection, "\n");
-        client(finalRequestFromLikeSection);
-        SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-        printf("\nLiked:)!\n");
+        char* server_response_for_lile = client(finalRequestFromLikeSection);
+        if (server_response_for_lile[9] == 'S') {
+            SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+            printf("\nLiked:)!\n");
+        }
+        if (server_response_for_lile[9] == 'E' && server_response_for_lile[27] == 'T'){
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            printf("\nYour tweet id is out of range");
+        }
+        if (server_response_for_lile[9] == 'E' && server_response_for_lile[27] == 'L'){
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            printf("\nYou liked this tweet before :).");
+        }
         for (long long int fake = 0; fake <=1000000000; ++fake);
         system("CLS");
         searchForTheSecondTime();
@@ -1084,9 +1271,15 @@ void likeOrCommentAfterSearch (void)
         strcat(commentRequestToServer, ", ");
         strcat(commentRequestToServer, commentText);
         strcat(commentRequestToServer, "\n");
-        client(commentRequestToServer);
-        SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_INTENSITY);
-        printf("\n\nComment saved!");
+        char* server_response_for_comment = client(commentRequestToServer);
+        if (server_response_for_comment[9] == 'S') {
+            SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+            printf("\n\nComment saved!");
+        }
+        if (server_response_for_comment[9] == 'E'){
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            printf("\n\nYour tweet id is out of range.");
+        }
         for (long long int fake = 0; fake <=1000000000; ++fake);
         system("CLS");
         searchForTheSecondTime();
@@ -1099,6 +1292,113 @@ void likeOrCommentAfterSearch (void)
         system("CLS");
         searchForTheSecondTime();
     }
+}
+//-------------------------------------------------------------------------
+void tweetSearch (void)
+{
+    //color
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_GREEN);
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
+    //color
+    printf("Please write the tweet which you looking for:\n");
+    SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+    char hashtak[200];
+    //
+    getchar();
+    //
+    gets(hashtak);
+    char final_request_for_tweetsearch[300] = "tweet search ";
+    strcat(final_request_for_tweetsearch, authToken);
+    strcat(final_request_for_tweetsearch, ", ");
+    strcat(final_request_for_tweetsearch, hashtak);
+    strcat(final_request_for_tweetsearch, "\n");
+    char* server_response_for_tweet_search = client(final_request_for_tweetsearch);
+    if (server_response_for_tweet_search[9] == 'E' && server_response_for_tweet_search[27] == 'B'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        printf("An error aqured during search please try again later.");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
+        system("CLS");
+        intheapplication();
+    }
+    //for else part
+    char serverAnswerForTweetSearchStringMode[10000];
+    strcpy(serverAnswerForTweetSearchStringMode, server_response_for_tweet_search);
+    //end of for else part
+    if (server_response_for_tweet_search[9] == 'E' && server_response_for_tweet_search[27] == 'N'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        printf("No such tweet found which contain your request.");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
+        system("CLS");
+        intheapplication();
+    }
+    else{
+        //instead of regex i used string.h functions to show refresh answer on the terminal
+        char *tokenPtr;
+        char xxxyyy[500][500];
+        tokenPtr = strtok(serverAnswerForTweetSearchStringMode,"\"");
+        int i = 0;
+        while (tokenPtr != NULL){
+            strcpy(xxxyyy[i], tokenPtr);
+            tokenPtr = strtok(NULL, "\"");
+            ++i;
+        }
+        int j = 0;
+        for (int k = 0; k<i; ++k){
+            if (strcmp(xxxyyy[k], "id")==0){
+                strcpy(number, xxxyyy[k+1]);
+                strcpy(array_for_comments[comment_variable], xxxyyy[k+1]);
+                comment_variable +=  1;
+            }
+            if (strcmp(xxxyyy[k], "author")==0){
+                printf("%s ", xxxyyy[k+2]);
+                for (int k1 = 1; k1<strlen(number)-1; ++k1){
+                    printf("%c", number[k1]);
+                }
+            }
+            if (strcasecmp(xxxyyy[k], "content") == 0){
+                printf("\n%s", xxxyyy[k+2]);
+            }
+            if (strcmp(xxxyyy[k], "comments") == 0){
+                int number2 = 0;
+                for (int k2 = k+1; k2<i; ++k2){
+                    if (strcmp(xxxyyy[k2], "likes") == 0){
+                        break;
+                    }
+                    if (strcmp(xxxyyy[k2], ":")== 0){
+                        number2 += 1;
+                        strcpy(array_for_comments[comment_variable], xxxyyy[k2+1]);
+                        comment_variable += 1;
+
+                    }
+                }
+                strcpy(array_for_comments[comment_variable], "***");
+                comment_variable += 1;
+                printf("\ncomment(s): %d\t", number2);
+            }
+            if (strcmp(xxxyyy[k], "likes") == 0){
+                printf("likes: ");
+                char likeNumber[100];
+                strcpy(likeNumber, xxxyyy[k+1]);
+                if (k+1 == i-1){
+                    for (int k3 = 1; k3<strlen(likeNumber)-2; ++k3){
+                        printf("%c", likeNumber[k3]);
+                    }
+                }
+                else{
+                    for (int k4 = 1; k4<strlen(likeNumber)-3; ++k4){
+                        printf("%c", likeNumber[k4]);
+                    }
+                }
+                printf("\n");
+            }
+        }
+    }
+    afterRefresh();
 }
 //-------------------------------------------------------------------------
 char number3[100];
@@ -1120,7 +1420,7 @@ void tweetProfrle (void)
     strcat(tweetProfile, "\n");
     char *serverAnswerForTweetProfile = client(tweetProfile);
     //showing details
-    char message[600];
+    char message[10000];
     strcpy(message, serverAnswerForTweetProfile);
     char *tokenPtr;
     char xxxyyy[1000][30];
@@ -1213,7 +1513,7 @@ void tweetProfrle (void)
             }
         }
     }
-    printf("\n\n\n1.Show comment(s)\n2.Back\n");
+    printf("\n\n\n1.Show comment(s)\n2.Delete a tweet\n3.Back\n");
     SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
     printf("\n\n\nPlease enter your desired action: \n");
     int inTheTweetProfileVariable;
@@ -1223,6 +1523,9 @@ void tweetProfrle (void)
         showCommentsAfterTweetProfile();
     }
     if (inTheTweetProfileVariable == 2){
+        deleteTweet();
+    }
+    if (inTheTweetProfileVariable == 3){
         system("CLS");
         intheapplication();
     }
@@ -1269,6 +1572,51 @@ void showCommentsAfterTweetProfile (void)
     if (comment_to_go_back == 0){
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
         printf("\n-------------------------------------------------\n");
+        system("CLS");
+        tweetProfrle();
+    }
+}
+//-------------------------------------------------------------------------
+void deleteTweet (void)
+{
+    //color
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_GREEN);
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
+    //color
+    printf("\nPlease enter id of tweet which you want to delete: \n");
+    char comment_id[10];
+    SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_RED|FOREGROUND_INTENSITY);
+    scanf("%s", comment_id);
+    printf("\n\n");
+    char delete_tweet_request[50] = "delete ";
+    strcat(delete_tweet_request, authToken);
+    strcat(delete_tweet_request, ", ");
+    strcat(delete_tweet_request, comment_id);
+    strcat(delete_tweet_request, "\n");
+    char* server_response_for_delete_tweet = client(delete_tweet_request);
+    if (server_response_for_delete_tweet[9] == 'S'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+        printf("\nTweet deleted successfuly.\n");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
+        system("CLS");
+        tweetProfrle();
+    }
+    if (server_response_for_delete_tweet[27] == 'T'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        printf("\nThis tweet is not yours.\n");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
+        system("CLS");
+        tweetProfrle();
+    }
+    if (server_response_for_delete_tweet[27] == 'N'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        printf("\nYour tweet number is out of range.\n");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
         system("CLS");
         tweetProfrle();
     }
@@ -1399,34 +1747,50 @@ void changePassword (void)
     strcat(requestFromChangePassword, "\n");
     char *serverAnswerForChangePassword = client(requestFromChangePassword);
     //getting information
+//    int true_or_false;
+//    char message[1000];
+//    strcpy(message, serverAnswerForChangePassword);
+//    char *tokenPtr;
+//    char xxxyyy[1000][30];
+//    tokenPtr = strtok(message, "\"");
+//    int i = 0;
+//    while (tokenPtr != NULL){
+//        strcpy(xxxyyy[i], tokenPtr);
+//        tokenPtr = strtok(NULL, "\"");
+//        ++i;
+//    }
+//    for (int k = 0; k<i; ++k){
+//        if (strcmp(xxxyyy[k], "type") == 0){
+//            if (strcmp(xxxyyy[k+2], "Successful") == 0){
+//                true_or_false = 0;
+//            }
+//            if (strcmp(xxxyyy[k+2], "Error") == 0){
+//                true_or_false = 1;
+//            }
+//        }
+//    }
     int true_or_false;
-    char message[1000];
-    strcpy(message, serverAnswerForChangePassword);
-    char *tokenPtr;
-    char xxxyyy[1000][30];
-    tokenPtr = strtok(message, "\"");
-    int i = 0;
-    while (tokenPtr != NULL){
-        strcpy(xxxyyy[i], tokenPtr);
-        tokenPtr = strtok(NULL, "\"");
-        ++i;
+    if (serverAnswerForChangePassword[9] == 'S'){
+        true_or_false = 0;
     }
-    for (int k = 0; k<i; ++k){
-        if (strcmp(xxxyyy[k], "type") == 0){
-            if (strcmp(xxxyyy[k+2], "Successful") == 0){
-                true_or_false = 0;
-            }
-            if (strcmp(xxxyyy[k+2], "Error") == 0){
-                true_or_false = 1;
-            }
-        }
+    if (serverAnswerForChangePassword[9] == 'E'){
+        true_or_false = 1;
     }
     if (true_or_false == 1){
-        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
-        printf("\n\n\n\nSorry the entered password for current password is wrong or your new password is equal to previous password\n");
-        for (long long int fake = 0; fake <=1000000000; ++fake);
-        system("CLS");
-        personalArea();
+        if (serverAnswerForChangePassword[27] == 'T'){
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            printf("\n\n\n\nYour new password should not be more than 16 characters.\n");
+            for (long long int fake = 0; fake <= 1000000000; ++fake);
+            system("CLS");
+            personalArea();
+        }
+        else {
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            printf("\n\n\n\nSorry the entered password for current password is wrong or your new password is equal to previous password\n");
+            for (long long int fake = 0; fake <= 1000000000; ++fake);
+            system("CLS");
+            personalArea();
+        }
     }
     if (true_or_false == 0){
         SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_INTENSITY);
@@ -1454,5 +1818,247 @@ void delay (unsigned int value)
     for (count1 = 0; count1<value; count1++){
         for (count2 = 0; count2<count1; count2++);
     }
+}
+//-------------------------------------------------------------------------
+void addFavorite (void)
+{
+    //color
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_GREEN);
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
+    //color
+    printf("Please write your favorite. Dont forget to put # at first.\n");
+    SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_RED|FOREGROUND_INTENSITY);
+    char favorite_sentence[200];
+    gets(favorite_sentence);
+    char final_request_for_add_favorite[500] = "add favorite ";
+    strcat(final_request_for_add_favorite, authToken);
+    strcat(final_request_for_add_favorite, ", ");
+    strcat(final_request_for_add_favorite, favorite_sentence);
+    strcat(final_request_for_add_favorite, "\n");
+    char* server_response = client(final_request_for_add_favorite);
+    if (server_response[9] == 'E' && server_response[27] == 'A'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        printf("An error aqured please try again later\n");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
+        system("CLS");
+        showFavorite();
+    }
+    if (server_response[9] == 'E' && server_response[27] == 'Y'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        printf("Your favorite massage does not have # sign.\n");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
+        system("CLS");
+        showFavorite();
+    }
+    if (server_response[9] == 'S'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+        printf("Your favorite message added successfully.\n");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
+        system("CLS");
+        showFavorite();
+    }
+}
+//-------------------------------------------------------------------------
+void showFavorite (void)
+{
+    //color
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_GREEN);
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+    //color
+    char showFavoriteRequest[100] = "show favorite ";
+    strcat(showFavoriteRequest, authToken);
+    strcat(showFavoriteRequest, "\n");
+    char* serverResponse = client(showFavoriteRequest);
+    char serverResponseStringMode[10000];
+    strcpy(serverResponseStringMode, serverResponse);
+    //tokenizing
+    char *tokenPtr;
+    char xxxyyy[1000][300];
+    tokenPtr = strtok(serverResponse,"\"");
+    int i = 0;
+    while (tokenPtr != NULL){
+        strcpy(xxxyyy[i], tokenPtr);
+        tokenPtr = strtok(NULL, "\"");
+        ++i;
+    }
+    int q = 1;
+    for (int j = 0; j<i; ++j){
+        if (j%2 == 1){
+            printf("%d-%s\n", q, xxxyyy[j]);
+            q += 1;
+        }
+    }
+    printf("\n\n\n");
+    afterShowFavorite();
+}
+//-------------------------------------------------------------------------
+void afterShowFavorite (void)
+{
+    //color
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_GREEN);
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+    //color
+    printf("1.Add favorite\n2.Delete favorite\n3.Show notification\n4.Back\n");
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
+    printf("\nPlease enter your desired action:\n");
+    int whichOne;
+    SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_RED|FOREGROUND_INTENSITY);
+    scanf("%d", &whichOne);
+    getchar();
+    if (whichOne == 1){
+        system("CLS");
+        addFavorite();
+    }
+    if (whichOne == 2){
+        deleteFavorite();
+    }
+    if (whichOne == 3){
+        system("CLS");
+        showNotification();
+    }
+    if (whichOne == 4){
+        system("CLS");
+        timeLine();
+    }
+    else{
+        system("CLS");
+        showFavorite();
+    }
+}
+//-------------------------------------------------------------------------
+void deleteFavorite (void)
+{
+    //color
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_GREEN);
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+    //color
+    SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+    printf("\n-------------------------------------------------\n");
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_RED|FOREGROUND_INTENSITY);
+    printf("Which one do you want to delete?\n");
+    SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_RED|FOREGROUND_INTENSITY);
+    int whichone;
+    scanf("%d", &whichone);
+    char wichone_char[20];
+    sprintf(wichone_char, "%d", whichone);
+    char request_to_server[100] = "delete favorite ";
+    strcat(request_to_server, authToken);
+    strcat(request_to_server, ", ");
+    strcat(request_to_server, wichone_char);
+    strcat(request_to_server, "\n");
+    char* server_response = client(request_to_server);
+    if (server_response[9] == 'E' && server_response[27] == 'E'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_INTENSITY);
+        printf("Your number is out of range.\n");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
+        system("CLS");
+        showFavorite();
+    }
+    if (server_response[9] == 'S'){
+        SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+        printf("Your favorite message deleted successfully.\n");
+        for (long long int fake = 0; fake <=1000000000; ++fake);
+        system("CLS");
+        showFavorite();
+    }
+}
+//-------------------------------------------------------------------------
+void showNotification (void)
+{
+    //color
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), BACKGROUND_BLUE|BACKGROUND_GREEN|BACKGROUND_GREEN);
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE|FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+    //color
+    char notificaionRequest[100] = "notification ";
+    strcat(notificaionRequest, authToken);
+    strcat(notificaionRequest, "\n");
+    char* server_response = client(notificaionRequest);
+    char server_response_string_mode[10000];
+    strcpy(server_response_string_mode, server_response);
+    char *tokenPtr;
+    char xxxyyy[1000][300];
+    tokenPtr = strtok(server_response_string_mode,"\"");
+    int i = 0;
+    while (tokenPtr != NULL){
+        strcpy(xxxyyy[i], tokenPtr);
+        tokenPtr = strtok(NULL, "\"");
+        ++i;
+    }
+    int j = 0;
+    for (int k = 0; k<i; ++k){
+        if (strcmp(xxxyyy[k], "id")==0){
+            strcpy(number, xxxyyy[k+1]);
+            strcpy(array_for_comments[comment_variable], xxxyyy[k+1]);
+            comment_variable +=  1;
+        }
+        if (strcmp(xxxyyy[k], "author")==0){
+            printf("%s ", xxxyyy[k+2]);
+            for (int k1 = 1; k1<strlen(number)-1; ++k1){
+                printf("%c", number[k1]);
+            }
+        }
+        if (strcasecmp(xxxyyy[k], "content") == 0){
+            printf("\n%s", xxxyyy[k+2]);
+        }
+        if (strcmp(xxxyyy[k], "comments") == 0){
+            int number2 = 0;
+            for (int k2 = k+1; k2<i; ++k2){
+                if (strcmp(xxxyyy[k2], "likes") == 0){
+                    break;
+                }
+                if (strcmp(xxxyyy[k2], ":")== 0){
+                    number2 += 1;
+                    strcpy(array_for_comments[comment_variable], xxxyyy[k2+1]);
+                    comment_variable += 1;
+
+                }
+            }
+            strcpy(array_for_comments[comment_variable], "***");
+            comment_variable += 1;
+            printf("\ncomment(s): %d\t", number2);
+        }
+        if (strcmp(xxxyyy[k], "likes") == 0){
+            printf("likes: ");
+            char likeNumber[100];
+            strcpy(likeNumber, xxxyyy[k+1]);
+            if (k+1 == i-2){
+                for (int k3 = 1; k3<strlen(likeNumber)-4; ++k3){
+                    printf("%c\n\n", likeNumber[k3]);
+                }
+            }
+            else{
+                for (int k4 = 1; k4<strlen(likeNumber)-3; ++k4){
+                    printf("%c\n", likeNumber[k4]);
+                }
+            }
+        }
+    }
+    printf("-------------------------------------------------");
+    afterRefresh();
 }
 //-------------------------------------------------------------------------
